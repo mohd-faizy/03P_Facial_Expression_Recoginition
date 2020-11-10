@@ -23,52 +23,53 @@ Human expression recognition plays an important role in the interpersonal relati
 
 we will build and train a convolutional neural network (CNN) in Keras from scratch to recognize facial expressions.
 
-- :heavy_check_mark::one: __Introduction and Overview__
+:red_circle: :one: __Introduction and Overview__
 
-  - Introduction to the data and and overview of the project.
-  - See a demo of the final product you will build by the end of this project.
-  - Introduction to the Rhyme interface.
-  - Import essential modules and helper functions from NumPy, Matplotlib, and Keras.
+    - Introduction to the data and and overview of the project.
+    - See a demo of the final product you will build by the end of this project.
+    - Introduction to the Rhyme interface.
+    - Import essential modules and helper functions from NumPy, Matplotlib, and Keras.
   
-- :heavy_check_mark::two: __Explore the Dataset__
+:red_circle: :two: __Explore the Dataset__
 
-   - Display some images from every expression type in the Emotion FER dataset.
-   - Check for class imbalance problems in the training data.
+    - Display some images from every expression type in the Emotion FER dataset.
+    - Check for class imbalance problems in the training data.
    
-- :heavy_check_mark::three: __Generate Training and Validation Batches__
+:red_circle: :three: __Generate Training and Validation Batches__
 
-   - Generate batches of tensor image data with real-time data augmentation.
-   - Specify paths to training and validation image directories and generates batches of augmented data.
+    - Generate batches of tensor image data with real-time data augmentation.
+    - Specify paths to training and validation image directories and generates batches of augmented data.
    
-- :heavy_check_mark::four: __Create a Convolutional Neural Network (CNN) Model__
+:red_circle: :four: __Create a Convolutional Neural Network (CNN) Model__
 
     - Design a convolutional neural network with 4 convolution layers and 2 fully connected layers to predict 7 types of facial expressions.
     - Use Adam as the optimizer, categorical crossentropy as the loss function, and accuracy as the evaluation metric.
     
-- :heavy_check_mark::five: __Train and Evaluate Model__
+:red_circle: :five: __Train and Evaluate Model__
 
     - Train the CNN by invoking the `model.fit()` method.
     - Use `ModelCheckpoint()` to save the weights associated with the higher validation accuracy.
     - Observe live training loss and accuracy plots in Jupyter Notebook for Keras.
 
-- :heavy_check_mark::six: __Represent Model as JSON String__
+:red_circle: :six: __Represent Model as JSON String__
 
     - Sometimes, you are only interested in the architecture of the model, and you don't need to save the weight values or the optimizer.
     - Use to `json()`, which uses a JSON string, to store the model architecture.
 
-- :heavy_check_mark::seven: __Create a Flask App to Serve Predictions__
+:red_circle: :seven: __Create a Flask App to Serve Predictions__
      
      - Use open-source code from "[Video Streaming with Flask Example](https://github.com/log0/video_streaming_with_flask_example)" to create a flask app to serve the model's prediction images directly to a web interface.
      
-- :heavy_check_mark::eight: __Design an HTML Template for the Flask App__
+:red_circle: :eight: __Design an HTML Template for the Flask App__
 
     - Create a FacialExpressionModel class to load the model from the JSON file, load the trained weights into the model, and predict facial expressions.
     
-- :heavy_check_mark::nine: __Use Model to Recognize Facial Expressions in Videos__
+:red_circle: :nine: __Use Model to Recognize Facial Expressions in Videos__
 
     - Run the `main.py` script to create the Flask app and serve the model's predictions to a web interface.
     - Apply the model to saved videos on disk.
     
+--- 
 
 ### Connect with me:
 
