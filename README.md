@@ -5,6 +5,27 @@ Facial Expression Recognition with Keras!
 ## FER Dataset
 __Facial Expression Recognition Challenge__ [click here](https://www.kaggle.com/c/challenges-in-representation-learning-facial-expression-recognition-challenge/data)
 
+```python
+# Pulling the data from Kaggle to colab
+
+# Create api key -> account ->Create New Token 
+# .json file is genrated 
+
+!pip install -q kaggle
+from google.colab import files 
+files.upload() #upload kaggle.json 
+
+!mkdir -p ~/.kaggle 
+!cp kaggle.json ~/.kaggle/ 
+!ls ~/.kaggle 
+!chmod 600 /root/.kaggle/kaggle.json 
+!kaggle kernels list — user YOUR_USER — sort-by dateRun 
+!kaggle competitions download -c DATASET 
+!unzip -q train.csv.zip -d . 
+!unzip -q test.csv.zip -d . 
+!ls
+```
+
 ## :heavy_check_mark: Objectives
 
    :one: Develop a facial expression recognition model in Keras
