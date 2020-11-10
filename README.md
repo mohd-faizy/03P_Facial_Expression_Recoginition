@@ -25,49 +25,49 @@ we will build and train a convolutional neural network (CNN) in Keras from scrat
 
 :red_circle: :one: __Introduction and Overview__
 
-    - Introduction to the data and and overview of the project.
-    - See a demo of the final product you will build by the end of this project.
-    - Introduction to the Rhyme interface.
-    - Import essential modules and helper functions from NumPy, Matplotlib, and Keras.
+  - Introduction to the data and and overview of the project.
+  - See a demo of the final product you will build by the end of this project.
+  - Introduction to the Rhyme interface.
+  - Import essential modules and helper functions from NumPy, Matplotlib, and Keras.
   
 :red_circle: :two: __Explore the Dataset__
 
-    - Display some images from every expression type in the Emotion FER dataset.
-    - Check for class imbalance problems in the training data.
+  - Display some images from every expression type in the Emotion FER dataset.
+  - Check for class imbalance problems in the training data.
    
 :red_circle: :three: __Generate Training and Validation Batches__
 
-    - Generate batches of tensor image data with real-time data augmentation.
-    - Specify paths to training and validation image directories and generates batches of augmented data.
+  - Generate batches of tensor image data with real-time data augmentation.
+  - Specify paths to training and validation image directories and generates batches of augmented data.
    
 :red_circle: :four: __Create a Convolutional Neural Network (CNN) Model__
 
-    - Design a convolutional neural network with 4 convolution layers and 2 fully connected layers to predict 7 types of facial expressions.
-    - Use Adam as the optimizer, categorical crossentropy as the loss function, and accuracy as the evaluation metric.
+  - Design a convolutional neural network with 4 convolution layers and 2 fully connected layers to predict 7 types of facial expressions.
+  - Use Adam as the optimizer, categorical crossentropy as the loss function, and accuracy as the evaluation metric.
     
 :red_circle: :five: __Train and Evaluate Model__
 
-    - Train the CNN by invoking the `model.fit()` method.
-    - Use `ModelCheckpoint()` to save the weights associated with the higher validation accuracy.
-    - Observe live training loss and accuracy plots in Jupyter Notebook for Keras.
+  - Train the CNN by invoking the `model.fit()` method.
+  - Use `ModelCheckpoint()` to save the weights associated with the higher validation accuracy.
+  - Observe live training loss and accuracy plots in Jupyter Notebook for Keras.
 
 :red_circle: :six: __Represent Model as JSON String__
 
-    - Sometimes, you are only interested in the architecture of the model, and you don't need to save the weight values or the optimizer.
-    - Use to `json()`, which uses a JSON string, to store the model architecture.
+  - Sometimes, you are only interested in the architecture of the model, and you don't need to save the weight values or the optimizer.
+  - Use to `json()`, which uses a JSON string, to store the model architecture.
 
 :red_circle: :seven: __Create a Flask App to Serve Predictions__
      
-     - Use open-source code from "[Video Streaming with Flask Example](https://github.com/log0/video_streaming_with_flask_example)" to create a flask app to serve the model's prediction images directly to a web interface.
+  - Use open-source code from "[Video Streaming with Flask Example](https://github.com/log0/video_streaming_with_flask_example)" to create a flask app to serve the model's prediction images directly to a web interface.
      
 :red_circle: :eight: __Design an HTML Template for the Flask App__
 
-    - Create a FacialExpressionModel class to load the model from the JSON file, load the trained weights into the model, and predict facial expressions.
+  - Create a FacialExpressionModel class to load the model from the JSON file, load the trained weights into the model, and predict facial expressions.
     
 :red_circle: :nine: __Use Model to Recognize Facial Expressions in Videos__
 
-    - Run the `main.py` script to create the Flask app and serve the model's predictions to a web interface.
-    - Apply the model to saved videos on disk.
+  - Run the `main.py` script to create the Flask app and serve the model's predictions to a web interface.
+  - Apply the model to saved videos on disk.
     
 --- 
 
