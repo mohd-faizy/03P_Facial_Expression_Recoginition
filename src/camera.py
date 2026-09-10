@@ -53,6 +53,7 @@ class VideoCamera(object):
         self.is_file = False
         self.demo_image = None
         self.demo_tick = 0
+        self.tracked_faces = []  # Temporal tracking list: [{'box': (x,y,w,h), 'label': str, 'lost': int}]
 
         # Load model with automatic models/ directory weights discovery
         self.model = None
@@ -139,23 +140,121 @@ class VideoCamera(object):
         _, jpeg = cv2.imencode('.jpg', frame)
         return jpeg.tobytes()
 
-    def _process_frame(self, frame, is_demo=False):
-        """Runs face detection and emotion classification on a frame."""
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray_frame, scaleFactor=1.3, minNeighbors=5)
+    @staticmethod
+    def _compute_iou(box1, box2):
+        """Computes Intersection over Union (IoU) between two bounding boxes."""
+        x1, y1, w1, h1 = box1
+        x2, y2, w2, h2 = box2
+        xi1, yi1 = max(x1, x2), max(y1, y2)
+        xi2, yi2 = min(x1 + w1, x2 + w2), min(y1 + h1, y2 + h2)
+        inter_w = max(0, xi2 - xi1)
+        inter_h = max(0, yi2 - yi1)
+        inter_area = inter_w * inter_h
+        union_area = (w1 * h1) + (w2 * h2) - inter_area
+        return inter_area / union_area if union_area > 0 else 0
 
-        for (x, y, w, h) in faces:
+    def _process_frame(self, frame, is_demo=False):
+        """Runs stabilized face detection and emotion classification on a frame."""
+        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        h_frame, w_frame = gray_frame.shape[:2]
+
+        # Equalize histogram for contrast stability under changing camera lighting
+        gray_eq = cv2.equalizeHist(gray_frame)
+        raw_faces = face_cascade.detectMultiScale(
+            gray_eq,
+            scaleFactor=1.15,
+            minNeighbors=4,
+            minSize=(60, 60)
+        )
+        if len(raw_faces) == 0:
+            raw_faces = face_cascade.detectMultiScale(
+                gray_frame,
+                scaleFactor=1.15,
+                minNeighbors=4,
+                minSize=(60, 60)
+            )
+
+        updated_tracked = []
+        raw_boxes = [tuple(int(v) for v in box) for box in raw_faces]
+        matched_indices = set()
+
+        # Match existing tracked faces to new detections to maintain continuity
+        for tf in self.tracked_faces:
+            best_iou = 0
+            best_idx = None
+            for idx, box in enumerate(raw_boxes):
+                if idx in matched_indices:
+                    continue
+                iou = self._compute_iou(tf['box'], box)
+                if iou > best_iou:
+                    best_iou = iou
+                    best_idx = idx
+
+            if best_iou > 0.25 and best_idx is not None:
+                matched_indices.add(best_idx)
+                # Exponential Moving Average (EMA) smoothing to eliminate bounding box jitter
+                alpha = 0.65
+                old_x, old_y, old_w, old_h = tf['box']
+                new_x, new_y, new_w, new_h = raw_boxes[best_idx]
+                smooth_box = (
+                    int(alpha * new_x + (1 - alpha) * old_x),
+                    int(alpha * new_y + (1 - alpha) * old_y),
+                    int(alpha * new_w + (1 - alpha) * old_w),
+                    int(alpha * new_h + (1 - alpha) * old_h),
+                )
+
+                label = tf['label']
+                if self.model is not None:
+                    sx, sy, sw, sh = smooth_box
+                    cx1 = max(0, sx)
+                    cy1 = max(0, sy)
+                    cx2 = min(w_frame, sx + sw)
+                    cy2 = min(h_frame, sy + sh)
+                    if cx2 > cx1 and cy2 > cy1:
+                        fc = gray_frame[cy1:cy2, cx1:cx2]
+                        roi = cv2.resize(fc, (48, 48))
+                        roi_tensor = roi[np.newaxis, :, :, np.newaxis]
+                        try:
+                            label = self.model.predict_emotion(roi_tensor)
+                        except Exception:
+                            pass
+
+                updated_tracked.append({'box': smooth_box, 'label': label, 'lost': 0})
+            else:
+                # Face briefly missed by detector (motion blur, turn) -> persist for up to 8 frames (~0.3s)
+                if tf['lost'] < 8:
+                    tf['lost'] += 1
+                    updated_tracked.append(tf)
+
+        # Register any new faces detected in the current frame
+        for idx, box in enumerate(raw_boxes):
+            if idx in matched_indices:
+                continue
+            x, y, w, h = box
             label = "Face Detected"
             if self.model is not None:
-                fc = gray_frame[y:y+h, x:x+w]
-                roi = cv2.resize(fc, (48, 48))
-                roi_tensor = roi[np.newaxis, :, :, np.newaxis]
-                try:
-                    label = self.model.predict_emotion(roi_tensor)
-                except Exception:
-                    label = "Face"
+                cx1 = max(0, x)
+                cy1 = max(0, y)
+                cx2 = min(w_frame, x + w)
+                cy2 = min(h_frame, y + h)
+                if cx2 > cx1 and cy2 > cy1:
+                    fc = gray_frame[cy1:cy2, cx1:cx2]
+                    roi = cv2.resize(fc, (48, 48))
+                    roi_tensor = roi[np.newaxis, :, :, np.newaxis]
+                    try:
+                        label = self.model.predict_emotion(roi_tensor)
+                    except Exception:
+                        pass
+            updated_tracked.append({'box': (int(x), int(y), int(w), int(h)), 'label': label, 'lost': 0})
 
-            # Draw bounding box (Cyan / #4cc9f0)
+        self.tracked_faces = updated_tracked
+
+        # Draw stabilized bounding boxes and label badges
+        for tf in self.tracked_faces:
+            x, y, w, h = tf['box']
+            label = tf['label']
+
+            # Smooth cyan / golden bounding box
             cv2.rectangle(frame, (x, y), (x + w, y + h), (240, 201, 76), 2)
 
             # Draw label banner background and text
