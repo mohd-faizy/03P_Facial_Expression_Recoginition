@@ -1,5 +1,5 @@
 tensorflow
-opencv-python
+opencv-python<5
 Flask
 numpy
 matplotlib

@@ -57,6 +57,29 @@ def video_feed():
     )
 
 
+import socket
+
+
+def find_available_port(host, preferred_port):
+    """Checks if preferred_port is available; if not, finds the next open port."""
+    test_host = '127.0.0.1' if host in ('0.0.0.0', '') else host
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind((test_host, preferred_port))
+            return preferred_port
+        except OSError:
+            pass
+
+    for candidate_port in range(5001, 5050):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind((test_host, candidate_port))
+                return candidate_port
+            except OSError:
+                continue
+    return preferred_port
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Facial Expression Recognition Flask Streaming Server")
     parser.add_argument('--source', default=None, help="Video source: camera index (e.g. 0) or video file path")
@@ -71,10 +94,18 @@ if __name__ == '__main__':
     args = parse_args()
     camera_source = args.source
     camera_demo = args.demo
+
+    # Auto-detect if port is in use (common on macOS due to AirPlay Receiver on port 5000)
+    actual_port = find_available_port(args.host, args.port)
+    if actual_port != args.port:
+        print(f"[INFO] Port {args.port} is already in use (e.g., macOS AirPlay Receiver).")
+        print(f"[INFO] Automatically switching to available port {actual_port}.")
+
     print("==================================================================")
     print("  Facial Expression Recognition - Real-Time Inference Server")
-    print(f"  Server URL:  http://localhost:{args.port}")
-    print(f"  Network URL: http://{args.host}:{args.port}")
+    print(f"  Server URL:  http://localhost:{actual_port}")
+    print(f"  Network URL: http://{args.host}:{actual_port}")
     print(f"  Mode:        {'Demo Simulation Mode (--demo)' if camera_demo else 'Live Webcam (Auto-Fallback to Demo if absent)'}")
     print("==================================================================")
-    app.run(host=args.host, port=args.port, debug=args.debug)
+    app.run(host=args.host, port=actual_port, debug=args.debug)
+

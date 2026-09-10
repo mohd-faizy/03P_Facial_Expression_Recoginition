@@ -72,7 +72,7 @@ An end-to-end, production-ready computer vision and deep learning system built w
 ├── templates/
 │   └── index.html                          # Modern dark-mode Flask streaming dashboard
 │
-├── 01_Facial_Expression_Recoginition_with_Keras.ipynb  # End-to-end training notebook
+├── Facial_Expression_Recoginition_with_Keras.ipynb  # End-to-end training notebook
 ├── main.py                                 # Flask web application server with CLI support
 ├── requirements.txt                        # Project dependencies specification
 ├── README.md                               # Comprehensive project documentation
@@ -137,17 +137,18 @@ Input Tensor: (Batch_Size, 48, 48, 1)
 git clone https://github.com/mohd-faizy/03P_Facial_Expression_Recoginition.git
 cd 03P_Facial_Expression_Recoginition
 
-# 2. Initialize project with uv
-uv init
-
-# 3. Create virtual environment
+# 2. Create virtual environment with uv
 uv venv
 
-# 4. Activate virtual environment
-# Windows (PowerShell / Command Prompt):
-.venv\Scripts\activate
+# 3. Activate virtual environment (Optional if using `uv run`)
 # macOS / Linux:
 source .venv/bin/activate
+
+# Windows (Command Prompt - cmd.exe):
+.venv\Scripts\activate.bat
+
+# Windows (PowerShell):
+.venv\Scripts\Activate.ps1
 ```
 
 ### Step 2: Install Dependencies with uv
@@ -158,30 +159,40 @@ uv add -r requirements.txt
 ```
 
 > [!TIP]
-> `uv` resolves and installs Python dependencies up to 10–100x faster than traditional tools. If your machine has an NVIDIA GPU with CUDA drivers configured, TensorFlow will automatically utilize hardware acceleration.
+> `uv` resolves and installs Python dependencies up to 10–100x faster than traditional pip. On macOS (Apple Silicon M-series) or machines with NVIDIA GPUs, TensorFlow will automatically leverage available acceleration.
 
 ### Step 3: Dataset Acquisition & Extraction
 
-1. Download the archive containing the FER-2013 training/testing splits and custom `utils` module:
-   - **Direct Download Link**: [Project Dataset Folder (Dropbox)](https://www.dropbox.com/s/rzy7401554q57gg/Project.zip)
-2. Extract `Project.zip` into your repository root so the hierarchy includes:
-   ```
-   03P_Facial_Expression_Recoginition/
-   ├── train/
-   │   ├── angry/ ... surprise/
-   ├── test/
-   │   ├── angry/ ... surprise/
-   └── utils/
-       └── datasets/
-           └── fer.py
-   ```
+The dataset contains the FER-2013 training/testing splits ($48 \times 48$ grayscale face crops across 7 emotion categories) and the custom `utils` module.
+
+Run the 1-line download & extraction command in your terminal:
+
+```bash
+curl -L -o Project.zip "https://www.dropbox.com/scl/fi/zpamlummigq0a74aqcmu8/Project.zip?rlkey=h9hn0qr10pxulmtrh4frv2ryw&dl=1" && unzip -uq Project.zip && cp -rn Project/train . 2>/dev/null || cp -r Project/train . && cp -rn Project/test . 2>/dev/null || cp -r Project/test . && cp -rn Project/utils . 2>/dev/null || cp -r Project/utils . && rm -rf Project.zip Project
+```
+
+This sets up the required hierarchy in your project root:
+```
+03P_Facial_Expression_Recoginition/
+├── train/
+│   ├── angry/ ... surprise/
+├── test/
+│   ├── angry/ ... surprise/
+└── utils/
+    └── datasets/
+        └── fer.py
+```
 
 ### Step 4: Train the Deep CNN Model
 
 Launch the interactive Jupyter training notebook:
 
 ```bash
-jupyter notebook 01_Facial_Expression_Recoginition_with_Keras.ipynb
+# Direct launch with uv (macOS / Linux / Windows):
+uv run jupyter notebook Facial_Expression_Recoginition_with_Keras.ipynb
+
+# Or within an activated virtual environment:
+jupyter notebook Facial_Expression_Recoginition_with_Keras.ipynb
 ```
 
 **Inside the notebook**:
@@ -195,27 +206,52 @@ jupyter notebook 01_Facial_Expression_Recoginition_with_Keras.ipynb
   - [`models/model.weights.h5`](models/model.weights.h5): Learned model weights.
 
 > [!NOTE]
-> **Prefer Cloud Training?** Click [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mohd-faizy/03P_Facial_Expression_Recoginition/blob/master/01_Facial_Expression_Recoginition_with_Keras.ipynb) to train on Google Colab with a free GPU.
+> **Prefer Cloud Training?** Click [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mohd-faizy/03P_Facial_Expression_Recoginition/blob/master/Facial_Expression_Recoginition_with_Keras.ipynb) to train on Google Colab with a free GPU. If you train on Colab, run the download cell at the end of the notebook to transfer `model.weights.h5` into your local `models/` folder.
 
 ### Step 5: Launch Real-Time Flask Server
 
-Start the real-time inference server:
+You can run the server directly with `uv run` (recommended across all platforms, no manual environment activation required) or using your activated virtual environment:
 
-```bash
-python main.py
-```
+#### Option A: Direct with `uv run` (Recommended)
 
-The application will launch on `http://localhost:5000`.
+- **macOS / Linux**:
+  ```bash
+  uv run python main.py
+  ```
+
+- **Windows (Command Prompt or PowerShell)**:
+  ```cmd
+  uv run python main.py
+  ```
+
+#### Option B: Using an Activated Virtual Environment
+
+- **macOS / Linux**:
+  ```bash
+  source .venv/bin/activate
+  python main.py
+  ```
+
+- **Windows (Command Prompt - cmd.exe)**:
+  ```cmd
+  .venv\Scripts\activate.bat
+  python main.py
+  ```
+
+- **Windows (PowerShell)**:
+  ```powershell
+  .venv\Scripts\Activate.ps1
+  python main.py
+  ```
+
+> [!NOTE]
+> **macOS Port Auto-Switching**: macOS reserves port `5000` for native AirPlay Receiver (`ControlCenter`). [`main.py`](main.py) automatically detects this conflict and binds to port `5001`. On Windows and Linux, it defaults to port `5000`. You can specify a custom port anytime with `--port <number>` (e.g. `uv run python main.py --port 8080`).
 
 ### Step 6: Access Live Web Dashboard
 
-Open your web browser and navigate to:
-```
-http://localhost:5000
-```
-- **Cyan Bounding Box**: Tracks detected faces in real-time.
-- **Emotion Banner**: Displays the top predicted emotion category.
-- **Inference Status**: Live streaming indicator.
+Open your web browser and navigate to the address shown in your terminal:
+- **macOS (default)**: [http://localhost:5001](http://localhost:5001)
+- **Windows / Linux (default)**: [http://localhost:5000](http://localhost:5000)
 
 ---
 
@@ -228,23 +264,23 @@ http://localhost:5000
 | `--source` | `str / int` | `None` (auto-detect) | Video input source: camera index (e.g., `0`, `1`) or local video path (e.g., `videos/sample.mkv`). |
 | `--demo` | `flag` | `False` | Force offline demo simulation mode without requiring a physical camera. |
 | `--host` | `str` | `0.0.0.0` | Network host address to bind the Flask server. |
-| `--port` | `int` | `5000` | Port number on which the application listens. |
+| `--port` | `int` | `5000` (auto-fallback to `5001+` if busy) | Port number on which the application listens. |
 | `--debug` | `flag` | `False` | Run Flask in debug mode with hot reloading. |
 
 #### Examples:
 
 ```bash
 # Force demo simulation mode (ideal for machines without webcams)
-python main.py --demo
+uv run python main.py --demo
 
 # Run with an external webcam device index
-python main.py --source 1
+uv run python main.py --source 1
 
 # Run with a pre-recorded video file
-python main.py --source videos/facial_exp.mkv
+uv run python main.py --source videos/facial_exp.mkv
 
-# Custom port binding
-python main.py --port 8080 --host 127.0.0.1
+# Custom port binding (e.g. port 8080)
+uv run python main.py --port 8080 --host 127.0.0.1
 ```
 
 ---
@@ -253,9 +289,9 @@ python main.py --port 8080 --host 127.0.0.1
 
 | Execution Scenario | Command | Behavior |
 | :--- | :--- | :--- |
-| **Desktop (No Camera)** | `python main.py` | Automatically detects missing camera, logs `[WARN] Video source '0' could not be opened. Enabling Demo Simulation Mode`, and streams inference on [`assets/sample_face.jpg`](assets/sample_face.jpg) at 25 FPS without consuming high CPU. |
-| **Desktop (Force Demo)** | `python main.py --demo` | Explicitly launches demo simulation mode. |
-| **Laptop (With Webcam)** | `python main.py` | Automatically connects to built-in webcam (`device 0`) and streams real-time live video and predictions. |
+| **Desktop (No Camera)** | `uv run python main.py` | Automatically detects missing camera, logs `[WARN] Video source '0' could not be opened. Enabling Demo Simulation Mode`, and streams inference on [`assets/sample_face.jpg`](assets/sample_face.jpg) at 25 FPS without consuming high CPU. |
+| **Desktop (Force Demo)** | `uv run python main.py --demo` | Explicitly launches demo simulation mode. |
+| **Laptop (With Webcam)** | `uv run python main.py` | Automatically connects to built-in webcam (`device 0`) and streams real-time live video and predictions. |
 
 ---
 
@@ -273,6 +309,14 @@ python main.py --port 8080 --host 127.0.0.1
 
 ### 4. GPU Out-of-Memory (OOM)
 - **Fix**: Dynamic GPU memory allocation is enabled by default in [`src/model.py`](src/model.py). For training on low-memory GPUs, reduce `batch_size` in the notebook from `64` to `32`.
+
+### 5. macOS Port 5000 Already in Use (`AirPlay Receiver`)
+- **Cause**: macOS Control Center binds port `5000` for native AirPlay.
+- **Fix**: [`main.py`](main.py) automatically detects the port collision and falls back to port `5001`. Alternatively, start the server on another port using `uv run python main.py --port 8080`, or disable AirPlay Receiver in **macOS System Settings** > **General** > **AirDrop & AirPlay**.
+
+### 6. Training on Colab vs. Local Inference
+- **Cause**: Training in Google Colab saves weights to Colab's cloud filesystem (`/content/models/model.weights.h5`), not your local machine.
+- **Fix**: In Google Colab, run the download cell (or right-click `models/model.weights.h5` in the file tree and click **Download**), then place the file into your local `models/` directory before starting `main.py`.
 
 ---
 
