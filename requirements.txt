@@ -1,0 +1,8 @@
+tensorflow
+opencv-python
+Flask
+numpy
+matplotlib
+seaborn
+livelossplot
+jupyter
