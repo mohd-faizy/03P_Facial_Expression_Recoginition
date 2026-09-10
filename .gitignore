@@ -41,12 +41,8 @@ venv.bak/
 */.ipynb_checkpoints/*
 
 # Model weights and heavy binaries (keep architecture & cascades tracked)
-*.h5
-*.weights.h5
 *.keras
 *.tflite
-# models/*.h5
-models/*.weights.h5
 models/*.keras
 !models/model.json
 !models/haarcascade_frontalface_default.xml
