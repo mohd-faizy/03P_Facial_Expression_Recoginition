@@ -1,7 +1,7 @@
 # Facial Expression Recognition with Keras
 
 <div align="center">
-  <img src="assets/model.png" alt="Facial Expression Recognition Architecture Banner" width="92%" style="border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.25);">
+  <img src="assets/banner.png" alt="Facial Expression Recognition Banner" width="100%" style="border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.25);">
 </div>
 
 <br>
@@ -25,6 +25,7 @@ An end-to-end, production-ready computer vision and deep learning system built w
 
 ## 📑 Table of Contents
 
+- [System Architecture & Workflow](#-system-architecture--workflow)
 - [Key Highlights](#-key-highlights)
 - [Repository Structure](#-repository-structure)
 - [Dataset: FER-2013](#-dataset-fer-2013)
@@ -40,6 +41,58 @@ An end-to-end, production-ready computer vision and deep learning system built w
 - [Desktop vs. Laptop Testing (Demo Simulation Mode)](#-desktop-vs-laptop-testing-demo-simulation-mode)
 - [Troubleshooting & FAQs](#-troubleshooting--faqs)
 - [Connect with Me](#-connect-with-me)
+
+---
+
+## 🔄 System Architecture & Workflow
+
+This repository implements a modular, production-ready computer vision pipeline designed for low-latency emotion inference from webcam video feeds or simulated offline inputs:
+
+```
+[Webcam / Video Ingestion]  ──►  [Haar Cascade Face Detector]  ──►  [ROI Cropping & Preprocessing]
+      (src/camera.py)                 (OpenCV Multi-scale)                  (48x48 Grayscale Tensor)
+                                                                                       │
+                                                                                       ▼
+[Live Web UI Streaming]    ◄──  [Softmax Emotion Inference]   ◄──  [4-Block Deep CNN Hierarchy]
+(Flask MJPEG / index.html)              (src/model.py)                  (Feature Extraction)
+```
+
+<div align="center">
+  <img src="assets/arch.jpg" alt="End-to-End System Workflow and Architecture" width="95%" style="border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.25);">
+</div>
+
+<br>
+
+### 🛠️ Pipeline Breakdown wrt Codebase:
+
+1. **Video Stream Ingestion & Simulation ([`src/camera.py`](src/camera.py))**:
+   - Ingests live video frames via OpenCV (`cv2.VideoCapture`).
+   - Includes automatic hardware detection: if no physical webcam is found, it seamlessly falls back to a rate-limited simulation mode (`assets/sample_face.jpg`) at ~25 FPS with <1% CPU overhead.
+
+2. **Facial Detection & Preprocessing ([`models/haarcascade_frontalface_default.xml`](models/haarcascade_frontalface_default.xml))**:
+   - Converts frames to grayscale and executes multi-scale Haar feature face detection (`detectMultiScale`).
+   - Dynamically crops the Region of Interest (ROI), resizes it to $48 \times 48$ pixels, and normalizes it to a 4D tensor `(1, 48, 48, 1)` for model ingestion.
+
+3. **Feature Extraction ([`src/model.py`](src/model.py))**:
+   - Routes the $48 \times 48 \times 1$ tensor through a 4-block deep convolutional neural network hierarchy to extract low-level facial edges, mid-level landmark contours (eyes, lips, brows), and high-level affective features.
+
+4. **Emotion Classification & Prediction**:
+   - Passes flattened latent embeddings through Dense layers (256 and 512 units) with Batch Normalization and Dropout regularization to prevent overfitting.
+   - Computes a 7-class softmax probability distribution across `["Angry", "Disgust", "Fear", "Happy", "Neutral", "Sad", "Surprise"]`.
+
+5. **Annotated MJPEG Streaming ([`main.py`](main.py) & [`templates/index.html`](templates/index.html))**:
+   - Draws dynamic bounding boxes and predicted emotion labels on each frame in real-time.
+   - Encodes annotated frames into JPEG bytes and streams them via Flask multipart HTTP responses directly into the modern web interface.
+
+<br>
+
+### 🧠 Deep CNN Layer Topology
+
+The internal network topology is decoupled into [`models/model.json`](models/model.json) (architecture) and [`models/model.weights.h5`](models/model.weights.h5) (trained parameters), featuring 4 convolutional feature extraction blocks followed by fully connected classification heads:
+
+<div align="center">
+  <img src="assets/model.png" alt="Deep CNN Layer Architecture Diagram" width="95%" style="border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.25);">
+</div>
 
 ---
 
@@ -59,7 +112,9 @@ An end-to-end, production-ready computer vision and deep learning system built w
 03P_Facial_Expression_Recoginition/
 │
 ├── assets/
-│   ├── model.png                           # CNN architecture pipeline diagram
+│   ├── arch.jpg                            # End-to-end system architecture & pipeline diagram
+│   ├── banner.png                          # Repository banner diagram
+│   ├── model.png                           # CNN architecture layer diagram
 │   └── sample_face.jpg                     # Demo simulation test image for offline execution
 ├── models/
 │   ├── haarcascade_frontalface_default.xml # OpenCV Haar Cascade frontal face detector
